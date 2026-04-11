@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeMatch — Singapore Resale Condo Scoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <div class="logo">
+        <span class="logo-text">Home<span class="logo-accent">Match</span></span>
+      </div>
+      <p class="tagline">Singapore resale condominium evaluation</p>
+    </div>
+  </header>
+
+  <main>
+    <!-- INPUT SECTION -->
+    <section class="input-section">
+      <div class="container">
+        <div class="input-card">
+          <h2 class="section-title">Evaluate a Development</h2>
+          <p class="section-subtitle">Enter the condo details to generate a comprehensive score across five key criteria, with transaction price analysis and nearby comparable benchmarks.</p>
+          <form id="evalForm" autocomplete="off">
+            <div class="form-grid">
+              <div class="form-group form-group--wide">
+                <label for="devName">Development Name</label>
+                <input type="text" id="devName" placeholder="e.g. The Sail @ Marina Bay" list="devSuggestions" required>
+                <datalist id="devSuggestions"></datalist>
+              </div>
+              <div class="form-group">
+                <label for="bedrooms">Bedrooms</label>
+                <select id="bedrooms" required>
+                  <option value="">Select</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5+</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="bathrooms">Bathrooms</label>
+                <select id="bathrooms" required>
+                  <option value="">Select</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4+</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn-evaluate" id="btnEvaluate">
+              <span class="btn-text">Evaluate</span>
+              <span class="btn-loader" hidden>
+                <span class="spinner"></span> Analysing…
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS SECTION -->
+    <section class="results-section" id="resultsSection" hidden>
+      <div class="container">
+
+        <!-- BASIC INFO -->
+        <div class="basic-info" id="basicInfo">
+          <div class="info-pill">
+            <span class="info-label">Development</span>
+            <span class="info-value" id="outDevName">—</span>
+          </div>
+          <div class="info-pill">
+            <span class="info-label">Units</span>
+            <span class="info-value" id="outUnits">—</span>
+          </div>
+          <div class="info-pill">
+            <span class="info-label">Age</span>
+            <span class="info-value" id="outAge">—</span>
+            <span class="info-hint" id="hintAge" hidden></span>
+          </div>
+          <div class="info-pill">
+            <span class="info-label">Config</span>
+            <span class="info-value" id="outConfig">—</span>
+            <span class="info-hint" id="hintConfig" hidden></span>
+          </div>
+        </div>
+
+        <!-- TAB NAV -->
+        <nav class="tab-nav" id="tabNav" hidden>
+          <button class="tab-btn active" data-tab="overview">Price</button>
+          <button class="tab-btn" data-tab="compare">Compare</button>
+          <button class="tab-btn" data-tab="scores">Scores</button>
+        </nav>
+
+        <!-- OVERVIEW TAB -->
+        <div class="tab-panel" id="panelOverview">
+        <div class="drilldown-section" id="priceSection" hidden>
+          <h3 class="panel-heading">Transaction Prices</h3>
+          <p class="price-source-note">Based on all URA resale transactions available (~3 years). Layout estimated from floor area.</p>
+          <div class="price-grid" id="priceGrid"></div>
+          <div class="trend-charts" id="trendCharts" hidden>
+            <p class="trend-summary" id="trendSummary" hidden></p>
+            <div class="chart-row-trend">
+              <div class="chart-wrap-trend">
+                <h4 class="price-card-title">PSF Trend</h4>
+                <canvas id="trendPsfCanvas"></canvas>
+              </div>
+              <div class="chart-wrap-trend">
+                <h4 class="price-card-title">Quantum Trend</h4>
+                <canvas id="trendQuantumCanvas"></canvas>
+              </div>
+            </div>
+            <p class="trend-empty-msg" id="trendEmptyMsg" hidden></p>
+          </div>
+        </div>
+        </div><!-- /panelOverview -->
+
+        <!-- COMPARE TAB -->
+        <div class="tab-panel" id="panelCompare">
+
+        <div class="comp-summary drilldown-section" id="compSummary" hidden></div>
+
+        <div class="drilldown-section" id="comparableSection" hidden>
+          <h4 class="comparable-heading">Nearby Comparable Prices</h4>
+          <p class="price-source-note" id="comparableSubtext"></p>
+
+          <p class="comparable-devs" id="comparableDevs"></p>
+          <div class="price-grid" id="comparableGrid"></div>
+          <div class="chart-row" id="chartRow">
+            <div class="chart-container">
+              <h4 class="comparable-heading">PSF Comparison</h4>
+              <canvas id="psfChart"></canvas>
+            </div>
+            <div class="chart-container">
+              <h4 class="comparable-heading">Quantum Comparison</h4>
+              <canvas id="quantumChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        </div><!-- /panelCompare -->
+
+        <!-- SCORE DASHBOARD -->
+        <div class="tab-panel" id="panelScores" hidden>
+        <div class="dashboard-grid">
+          <div class="scores-panel">
+            <h3 class="panel-heading">Criterion Scores</h3>
+            <div class="score-bars" id="scoreBars"></div>
+          </div>
+
+          <div class="summary-panel">
+            <div class="total-score-ring" id="totalScoreRing">
+              <svg viewBox="0 0 120 120" class="ring-svg">
+                <circle cx="60" cy="60" r="52" class="ring-bg"/>
+                <circle cx="60" cy="60" r="52" class="ring-fill" id="ringFill"/>
+              </svg>
+              <div class="ring-label">
+                <span class="ring-number" id="totalScoreNum">0</span>
+                <span class="ring-of">/50</span>
+              </div>
+            </div>
+            <div class="tier-badge" id="tierBadge">—</div>
+            <p class="tier-desc" id="tierDesc"></p>
+          </div>
+        </div>
+
+        <!-- DRILL-DOWN PANELS -->
+        <div class="drilldown-section">
+          <h3 class="panel-heading">Score Breakdown</h3>
+          <div class="accordion" id="accordion"></div>
+        </div>
+
+        </div><!-- /panelScores -->
+
+        <!-- DATA FRESHNESS -->
+        <footer class="data-footer" id="dataFooter">
+          <p>Data refreshed: <span id="refreshTimestamp">—</span></p>
+          <p class="source-note">Sources: URA REALIS, OneMap, MOE School Directory. Scores flagged with * use imputed defaults.</p>
+        </footer>
+
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>&copy; 2026 HomeMatch &middot; For informational purposes only</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
