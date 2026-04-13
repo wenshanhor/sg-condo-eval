@@ -225,7 +225,7 @@ function evaluateDevelopment(name, bed, bath) {
   let tier, tierKey, tierDesc;
   if (totalScore >= 40) {
     tier = "Excellent"; tierKey = "excellent";
-    tierDesc = "Strong fundamentals across all dimensions. A well-positioned resale asset.";
+    tierDesc = "Strong fundamentals across all dimensions.";
   } else if (totalScore >= 30) {
     tier = "Good"; tierKey = "good";
     tierDesc = "Solid on most criteria with minor gaps. Worth serious consideration.";
@@ -313,7 +313,7 @@ function buildDrillHTML(c) {
       ? `${c.transactions} (${c.transactionsAll} all types)`
       : (c.transactions != null ? c.transactions : "—");
     rows.push(["URA Transactions – similar unit (12m)", txLabel]);
-    rows.push(["Note", "URA transactions are filtered to resale only (type of sale = 3) within the last 12 months. " +
+    rows.push(["Note", "URA transactions include sub-sale (type 2) and resale (type 3) within the last 12 months. " +
       "Bedroom count is estimated from floor area: ≤55 sqm → 1BR, ≤80 sqm → 2BR, ≤120 sqm → 3BR, ≤160 sqm → 4BR, >160 sqm → 5+BR. " +
       ">20 → 10/10, 11–20 → 7/10, 5–10 → 4/10, <5 → 1/10."]);
   }
@@ -489,7 +489,7 @@ function priceTableHead() {
 }
 
 function buildPriceTable(label, stats) {
-  if (!stats) return `<div class="price-card"><h4 class="price-card-title">${label}</h4><p class="price-empty">No resale transactions found</p></div>`;
+  if (!stats) return `<div class="price-card"><h4 class="price-card-title">${label}</h4><p class="price-empty">No transactions found</p></div>`;
 
   return `
     <div class="price-card">
@@ -936,13 +936,13 @@ function renderComparables(comp, result) {
   const criteriaDesc = `Within 2 km, ±200 total units, ${bedLabel} unit type, matching tenure` +
     (result.tenure !== "Freehold" ? ` (±5 yr leasehold)` : "") + `.`;
 
-  const dataNote = " Prices based on all URA resale transactions available (~3 years). Bedroom count is estimated from unit floor area.";
+  const dataNote = " Prices based on all URA sub-sale and resale transactions available (~3 years). Bedroom count is estimated from unit floor area.";
   if (!comp.fallback) {
     document.getElementById("comparableSubtext").textContent =
       `${criteriaDesc} Top 5 closest shown.` + dataNote;
   } else {
     document.getElementById("comparableSubtext").textContent =
-      `Showing the 5 closest developments with ${bedLabel} resale data.` + dataNote;
+      `Showing the 5 closest developments with ${bedLabel} transaction data.` + dataNote;
   }
 
   const devList = comp.developments.map((d) => {
