@@ -204,50 +204,51 @@
             <p class="price-source-note">AI-powered analysis of your floor plan layout.</p>
 
             <div class="fp-analysis" id="fpAnalysis" hidden>
-              <div class="fp-layout">
-                <div class="fp-image-wrap">
-                  <img id="fpImage" alt="Uploaded floor plan">
+              <div class="dashboard-grid">
+                <div class="scores-panel">
+                  <h3 class="panel-heading">Layout Scores</h3>
+                  <div class="score-bars" id="fpScoreBars">
+                    <div class="score-row">
+                      <div class="score-row-header">
+                        <span class="score-criterion">Circulation Efficiency</span>
+                        <span class="score-value" id="fpCircScore">—/10</span>
+                      </div>
+                      <div class="bar-track"><div class="bar-fill" id="fpCircBar"></div></div>
+                    </div>
+                    <div class="score-row">
+                      <div class="score-row-header">
+                        <span class="score-criterion">Functional Zoning</span>
+                        <span class="score-value" id="fpZoneScore">—/10</span>
+                      </div>
+                      <div class="bar-track"><div class="bar-fill" id="fpZoneBar"></div></div>
+                    </div>
+                    <div class="score-row">
+                      <div class="score-row-header">
+                        <span class="score-criterion">Space Utilization</span>
+                        <span class="score-value" id="fpUtilScore">—/10</span>
+                      </div>
+                      <div class="bar-track"><div class="bar-fill" id="fpUtilBar"></div></div>
+                    </div>
+                  </div>
                 </div>
-                <div class="fp-scores">
-                  <div class="fp-score-card">
-                    <span class="fp-score-label">Circulation Efficiency</span>
-                    <div class="fp-score-ring">
-                      <svg viewBox="0 0 80 80" class="ring-svg"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fill" id="fpCircRingFill"/></svg>
-                      <div class="ring-label"><span class="ring-number" id="fpCircScore">—</span><span class="ring-of">/10</span></div>
-                    </div>
+
+                <div class="summary-panel">
+                  <div class="total-score-ring">
+                    <svg viewBox="0 0 120 120" class="ring-svg"><circle cx="60" cy="60" r="52" class="ring-bg"/><circle cx="60" cy="60" r="52" class="ring-fill" id="fpTotalRingFill"/></svg>
+                    <div class="ring-label"><span class="ring-number" id="fpTotalScore">—</span><span class="ring-of">/10</span></div>
                   </div>
-                  <div class="fp-score-card">
-                    <span class="fp-score-label">Functional Zoning</span>
-                    <div class="fp-score-ring">
-                      <svg viewBox="0 0 80 80" class="ring-svg"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fill" id="fpZoneRingFill"/></svg>
-                      <div class="ring-label"><span class="ring-number" id="fpZoneScore">—</span><span class="ring-of">/10</span></div>
-                    </div>
-                  </div>
-                  <div class="fp-score-card">
-                    <span class="fp-score-label">Space Utilization</span>
-                    <div class="fp-score-ring">
-                      <svg viewBox="0 0 80 80" class="ring-svg"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fill" id="fpUtilRingFill"/></svg>
-                      <div class="ring-label"><span class="ring-number" id="fpUtilScore">—</span><span class="ring-of">/10</span></div>
-                    </div>
-                  </div>
+                  <div class="tier-badge" id="fpTierBadge">—</div>
+                  <p class="tier-desc" id="fpTierDesc"></p>
                 </div>
               </div>
 
-              <div class="fp-detail-section">
-                <h4 class="fp-detail-heading">Circulation Efficiency</h4>
-                <p class="fp-detail-text" id="fpCircDetail"></p>
+              <div class="fp-image-wrap">
+                <img id="fpImage" alt="Uploaded floor plan">
               </div>
-              <div class="fp-detail-section">
-                <h4 class="fp-detail-heading">Functional Zoning</h4>
-                <p class="fp-detail-text" id="fpZoneDetail"></p>
-              </div>
-              <div class="fp-detail-section">
-                <h4 class="fp-detail-heading">Space Utilization</h4>
-                <p class="fp-detail-text" id="fpUtilDetail"></p>
-              </div>
-              <div class="fp-detail-section" id="fpSuggestionsSection" hidden>
-                <h4 class="fp-detail-heading">Suggestions</h4>
-                <ul class="fp-suggestions" id="fpSuggestions"></ul>
+
+              <div class="drilldown-section">
+                <h3 class="panel-heading">Score Breakdown</h3>
+                <div class="accordion" id="fpAccordion"></div>
               </div>
             </div>
 

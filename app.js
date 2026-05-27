@@ -1246,34 +1246,110 @@ function renderFloorPlanResults(analysis) {
   const zoneScore = analysis.zoningScore ?? 0;
   const utilScore = analysis.utilizationScore ?? 0;
 
-  document.getElementById("fpCircScore").textContent = circScore;
-  document.getElementById("fpZoneScore").textContent = zoneScore;
-  document.getElementById("fpUtilScore").textContent = utilScore;
-
-  const circumference = 2 * Math.PI * 34;
-
-  function setRing(id, score) {
-    const ring = document.getElementById(id);
-    ring.style.strokeDasharray = `${circumference}`;
-    ring.style.strokeDashoffset = `${circumference * (1 - score / 10)}`;
-    ring.style.stroke = scoreColor(score);
+  function setBar(scoreId, barId, score) {
+    const color = scoreColor(score);
+    document.getElementById(scoreId).textContent = `${score}/10`;
+    document.getElementById(scoreId).style.color = color;
+    const bar = document.getElementById(barId);
+    bar.style.background = color;
+    bar.dataset.width = `${(score / 10) * 100}%`;
   }
 
-  setRing("fpCircRingFill", circScore);
-  setRing("fpZoneRingFill", zoneScore);
-  setRing("fpUtilRingFill", utilScore);
+  setBar("fpCircScore", "fpCircBar", circScore);
+  setBar("fpZoneScore", "fpZoneBar", zoneScore);
+  setBar("fpUtilScore", "fpUtilBar", utilScore);
 
-  document.getElementById("fpCircDetail").textContent = analysis.circulationDetail || "";
-  document.getElementById("fpZoneDetail").textContent = analysis.zoningDetail || "";
-  document.getElementById("fpUtilDetail").textContent = analysis.utilizationDetail || "";
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll("#fpScoreBars .bar-fill").forEach((bar) => {
+        bar.style.width = bar.dataset.width;
+      });
+    });
+  });
 
-  const sugSection = document.getElementById("fpSuggestionsSection");
-  const sugList = document.getElementById("fpSuggestions");
+  const avgScore = Math.round(((circScore + zoneScore + utilScore) / 3) * 10) / 10;
+  document.getElementById("fpTotalScore").textContent = avgScore;
+  const totalCirc = 2 * Math.PI * 52;
+  const totalRing = document.getElementById("fpTotalRingFill");
+  totalRing.style.strokeDasharray = `${totalCirc}`;
+  totalRing.style.strokeDashoffset = `${totalCirc * (1 - avgScore / 10)}`;
+  totalRing.style.stroke = scoreColor(Math.round(avgScore));
+
+  const rounded = Math.round(avgScore);
+  let tier, tierKey, tierDesc;
+  if (rounded >= 8) { tier = "Excellent"; tierKey = "excellent"; tierDesc = "Outstanding layout with efficient flow and minimal wasted space."; }
+  else if (rounded >= 6) { tier = "Good"; tierKey = "good"; tierDesc = "Well-designed layout with minor areas for improvement."; }
+  else if (rounded >= 4) { tier = "Fair"; tierKey = "fair"; tierDesc = "Adequate layout but notable inefficiencies to consider."; }
+  else { tier = "Poor"; tierKey = "not-recommended"; tierDesc = "Significant layout issues that may impact liveability."; }
+
+  const badge = document.getElementById("fpTierBadge");
+  badge.textContent = tier;
+  badge.dataset.tier = tierKey;
+  document.getElementById("fpTierDesc").textContent = tierDesc;
+
+  const fpAccordion = document.getElementById("fpAccordion");
+  fpAccordion.innerHTML = "";
+
+  const criteria = [
+    { label: "Circulation Efficiency", score: circScore, detail: analysis.circulationDetail || "" },
+    { label: "Functional Zoning", score: zoneScore, detail: analysis.zoningDetail || "" },
+    { label: "Space Utilization", score: utilScore, detail: analysis.utilizationDetail || "" },
+  ];
+
+  criteria.forEach((c) => {
+    const color = scoreColor(c.score);
+    const item = document.createElement("div");
+    item.className = "accordion-item";
+    item.innerHTML = `
+      <button class="accordion-trigger" aria-expanded="false">
+        <span>${c.label}</span>
+        <span class="trigger-score" style="background:${color}">${c.score}</span>
+        <span class="chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+      </button>
+      <div class="accordion-body">
+        <p class="fp-detail-text">${c.detail}</p>
+      </div>
+    `;
+    fpAccordion.appendChild(item);
+
+    item.querySelector(".accordion-trigger").addEventListener("click", () => {
+      const isOpen = item.classList.contains("open");
+      fpAccordion.querySelectorAll(".accordion-item.open").forEach((el) => {
+        el.classList.remove("open");
+        el.querySelector(".accordion-trigger").setAttribute("aria-expanded", "false");
+      });
+      if (!isOpen) {
+        item.classList.add("open");
+        item.querySelector(".accordion-trigger").setAttribute("aria-expanded", "true");
+      }
+    });
+  });
+
   if (analysis.suggestions && analysis.suggestions.length > 0) {
-    sugList.innerHTML = analysis.suggestions.map((s) => `<li>${s}</li>`).join("");
-    sugSection.hidden = false;
-  } else {
-    sugSection.hidden = true;
+    const sugItem = document.createElement("div");
+    sugItem.className = "accordion-item";
+    sugItem.innerHTML = `
+      <button class="accordion-trigger" aria-expanded="false">
+        <span>Suggestions</span>
+        <span class="chevron"><svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+      </button>
+      <div class="accordion-body">
+        <ul class="fp-suggestions">${analysis.suggestions.map((s) => `<li>${s}</li>`).join("")}</ul>
+      </div>
+    `;
+    fpAccordion.appendChild(sugItem);
+
+    sugItem.querySelector(".accordion-trigger").addEventListener("click", () => {
+      const isOpen = sugItem.classList.contains("open");
+      fpAccordion.querySelectorAll(".accordion-item.open").forEach((el) => {
+        el.classList.remove("open");
+        el.querySelector(".accordion-trigger").setAttribute("aria-expanded", "false");
+      });
+      if (!isOpen) {
+        sugItem.classList.add("open");
+        sugItem.querySelector(".accordion-trigger").setAttribute("aria-expanded", "true");
+      }
+    });
   }
 }
 
