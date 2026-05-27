@@ -366,6 +366,7 @@ function switchTab(tab) {
   document.getElementById("panelOverview").hidden = tab !== "overview";
   document.getElementById("panelCompare").hidden = tab !== "compare";
   document.getElementById("panelScores").hidden = tab !== "scores";
+  document.getElementById("panelFloorplan").hidden = tab !== "floorplan";
 
   if (tab === "overview" && pendingTrendRender) {
     requestAnimationFrame(() => {
@@ -1150,10 +1151,137 @@ async function runEvaluation(devName, bed, bath) {
   return mockResult;
 }
 
+// ─── Floor Plan Upload & Analysis ────
+
+let selectedFloorPlanFile = null;
+
+function setupFloorPlanUpload() {
+  const zone = document.getElementById("uploadZone");
+  const input = document.getElementById("floorPlanInput");
+  const placeholder = document.getElementById("uploadPlaceholder");
+  const preview = document.getElementById("uploadPreview");
+  const previewImg = document.getElementById("previewImg");
+  const removeBtn = document.getElementById("uploadRemove");
+
+  function showPreview(file) {
+    selectedFloorPlanFile = file;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImg.src = e.target.result;
+      placeholder.hidden = true;
+      preview.hidden = false;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPreview() {
+    selectedFloorPlanFile = null;
+    input.value = "";
+    previewImg.src = "";
+    placeholder.hidden = false;
+    preview.hidden = true;
+  }
+
+  zone.addEventListener("click", (e) => {
+    if (e.target.closest(".upload-remove")) return;
+    input.click();
+  });
+
+  input.addEventListener("change", () => {
+    if (input.files[0]) showPreview(input.files[0]);
+  });
+
+  removeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    clearPreview();
+  });
+
+  zone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    zone.classList.add("drag-over");
+  });
+
+  zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
+
+  zone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    zone.classList.remove("drag-over");
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) showPreview(file);
+  });
+}
+
+async function analyzeFloorPlan(file) {
+  const formData = new FormData();
+  formData.append("floorplan", file);
+
+  const res = await fetch(`${API_BASE}/api/analyze-floorplan`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Analysis failed" }));
+    throw new Error(err.error || "Floor plan analysis failed");
+  }
+
+  return res.json();
+}
+
+function renderFloorPlanResults(analysis) {
+  const tabBtn = document.getElementById("tabFloorplan");
+  tabBtn.hidden = false;
+
+  const fpAnalysis = document.getElementById("fpAnalysis");
+  const fpLoading = document.getElementById("fpLoading");
+  const fpError = document.getElementById("fpError");
+
+  fpLoading.classList.remove("visible");
+  fpError.hidden = true;
+  fpAnalysis.hidden = false;
+
+  document.getElementById("fpImage").src = document.getElementById("previewImg").src;
+
+  const circScore = analysis.circulationScore ?? 0;
+  const zoneScore = analysis.zoningScore ?? 0;
+  const utilScore = analysis.utilizationScore ?? 0;
+
+  document.getElementById("fpCircScore").textContent = circScore;
+  document.getElementById("fpZoneScore").textContent = zoneScore;
+  document.getElementById("fpUtilScore").textContent = utilScore;
+
+  const circumference = 2 * Math.PI * 34;
+
+  function setRing(id, score) {
+    const ring = document.getElementById(id);
+    ring.style.strokeDasharray = `${circumference}`;
+    ring.style.strokeDashoffset = `${circumference * (1 - score / 10)}`;
+    ring.style.stroke = scoreColor(score);
+  }
+
+  setRing("fpCircRingFill", circScore);
+  setRing("fpZoneRingFill", zoneScore);
+  setRing("fpUtilRingFill", utilScore);
+
+  document.getElementById("fpCircDetail").textContent = analysis.circulationDetail || "";
+  document.getElementById("fpZoneDetail").textContent = analysis.zoningDetail || "";
+  document.getElementById("fpUtilDetail").textContent = analysis.utilizationDetail || "";
+
+  const sugSection = document.getElementById("fpSuggestionsSection");
+  const sugList = document.getElementById("fpSuggestions");
+  if (analysis.suggestions && analysis.suggestions.length > 0) {
+    sugList.innerHTML = analysis.suggestions.map((s) => `<li>${s}</li>`).join("");
+    sugSection.hidden = false;
+  } else {
+    sugSection.hidden = true;
+  }
+}
+
 // ─── Init ──────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
   populateSuggestions();
+  setupFloorPlanUpload();
 
   const form = document.getElementById("evalForm");
   const btn = document.getElementById("btnEvaluate");
@@ -1173,7 +1301,30 @@ document.addEventListener("DOMContentLoaded", () => {
     btnText.hidden = true;
     btnLoader.hidden = false;
 
-    const result = await runEvaluation(devName, bed, bath);
+    const hasFloorPlan = !!selectedFloorPlanFile;
+
+    document.getElementById("tabFloorplan").hidden = !hasFloorPlan;
+    if (hasFloorPlan) {
+      document.getElementById("fpAnalysis").hidden = true;
+      document.getElementById("fpError").hidden = true;
+      document.getElementById("fpLoading").classList.add("visible");
+    }
+
+    let fpResult = null;
+
+    const [result] = await Promise.all([
+      runEvaluation(devName, bed, bath),
+      hasFloorPlan
+        ? analyzeFloorPlan(selectedFloorPlanFile)
+            .then((analysis) => { fpResult = analysis; })
+            .catch((err) => {
+              document.getElementById("fpLoading").classList.remove("visible");
+              const fpError = document.getElementById("fpError");
+              fpError.textContent = err.message || "Floor plan analysis failed. Please try again.";
+              fpError.hidden = false;
+            })
+        : Promise.resolve(),
+    ]);
 
     btnText.hidden = false;
     btnLoader.hidden = true;
@@ -1184,5 +1335,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     renderResults(result);
+
+    if (fpResult) {
+      renderFloorPlanResults(fpResult);
+    }
   });
 });

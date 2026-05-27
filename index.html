@@ -56,6 +56,22 @@
                 </select>
               </div>
             </div>
+
+            <div class="form-group form-group--wide form-group--upload">
+              <label for="floorPlanInput">Floor Plan <span class="label-optional">(optional)</span></label>
+              <div class="upload-zone" id="uploadZone">
+                <input type="file" id="floorPlanInput" accept="image/*" hidden>
+                <div class="upload-placeholder" id="uploadPlaceholder">
+                  <svg class="upload-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  <span>Drag &amp; drop or <u>browse</u> a floor plan image</span>
+                </div>
+                <div class="upload-preview" id="uploadPreview" hidden>
+                  <img id="previewImg" alt="Floor plan preview">
+                  <button type="button" class="upload-remove" id="uploadRemove" title="Remove">&times;</button>
+                </div>
+              </div>
+            </div>
+
             <button type="submit" class="btn-evaluate" id="btnEvaluate">
               <span class="btn-text">Evaluate</span>
               <span class="btn-loader" hidden>
@@ -98,6 +114,7 @@
           <button class="tab-btn active" data-tab="overview">Price</button>
           <button class="tab-btn" data-tab="compare">Compare</button>
           <button class="tab-btn" data-tab="scores">Scores</button>
+          <button class="tab-btn" data-tab="floorplan" id="tabFloorplan" hidden>Floor Plan</button>
         </nav>
 
         <!-- OVERVIEW TAB -->
@@ -179,6 +196,68 @@
         </div>
 
         </div><!-- /panelScores -->
+
+        <!-- FLOOR PLAN TAB -->
+        <div class="tab-panel" id="panelFloorplan" hidden>
+          <div class="drilldown-section">
+            <h3 class="panel-heading">Floor Plan Analysis</h3>
+            <p class="price-source-note">AI-powered analysis of your floor plan layout.</p>
+
+            <div class="fp-analysis" id="fpAnalysis" hidden>
+              <div class="fp-layout">
+                <div class="fp-image-wrap">
+                  <img id="fpImage" alt="Uploaded floor plan">
+                </div>
+                <div class="fp-scores">
+                  <div class="fp-score-card">
+                    <span class="fp-score-label">Circulation Efficiency</span>
+                    <div class="fp-score-ring">
+                      <svg viewBox="0 0 80 80" class="ring-svg"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fill" id="fpCircRingFill"/></svg>
+                      <div class="ring-label"><span class="ring-number" id="fpCircScore">—</span><span class="ring-of">/10</span></div>
+                    </div>
+                  </div>
+                  <div class="fp-score-card">
+                    <span class="fp-score-label">Functional Zoning</span>
+                    <div class="fp-score-ring">
+                      <svg viewBox="0 0 80 80" class="ring-svg"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fill" id="fpZoneRingFill"/></svg>
+                      <div class="ring-label"><span class="ring-number" id="fpZoneScore">—</span><span class="ring-of">/10</span></div>
+                    </div>
+                  </div>
+                  <div class="fp-score-card">
+                    <span class="fp-score-label">Space Utilization</span>
+                    <div class="fp-score-ring">
+                      <svg viewBox="0 0 80 80" class="ring-svg"><circle cx="40" cy="40" r="34" class="ring-bg"/><circle cx="40" cy="40" r="34" class="ring-fill" id="fpUtilRingFill"/></svg>
+                      <div class="ring-label"><span class="ring-number" id="fpUtilScore">—</span><span class="ring-of">/10</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="fp-detail-section">
+                <h4 class="fp-detail-heading">Circulation Efficiency</h4>
+                <p class="fp-detail-text" id="fpCircDetail"></p>
+              </div>
+              <div class="fp-detail-section">
+                <h4 class="fp-detail-heading">Functional Zoning</h4>
+                <p class="fp-detail-text" id="fpZoneDetail"></p>
+              </div>
+              <div class="fp-detail-section">
+                <h4 class="fp-detail-heading">Space Utilization</h4>
+                <p class="fp-detail-text" id="fpUtilDetail"></p>
+              </div>
+              <div class="fp-detail-section" id="fpSuggestionsSection" hidden>
+                <h4 class="fp-detail-heading">Suggestions</h4>
+                <ul class="fp-suggestions" id="fpSuggestions"></ul>
+              </div>
+            </div>
+
+            <div class="fp-loading" id="fpLoading">
+              <span class="spinner"></span>
+              <span>Analysing floor plan…</span>
+            </div>
+            <div class="fp-error" id="fpError" hidden></div>
+          </div>
+        </div><!-- /panelFloorplan -->
 
         <!-- DATA FRESHNESS -->
         <footer class="data-footer" id="dataFooter">
