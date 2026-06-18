@@ -1121,9 +1121,22 @@ function populateSuggestions() {
 
 // ─── Live API Integration ──────────────
 
-const API_BASE = window.location.hostname === "localhost"
+const host = window.location.hostname;
+const isLocalFrontendHost = ["localhost", "127.0.0.1", "::1", "0.0.0.0"].includes(host);
+const isPrivateNetworkHost = /^10\.\d+\.\d+\.\d+$/.test(host)
+  || /^192\.168\.\d+\.\d+$/.test(host)
+  || /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(host);
+
+// Optional override for testing from non-localhost frontends:
+// - Add ?apiBase=http://localhost:3001 to URL, or
+// - set localStorage.HOMEMATCH_API_BASE
+const apiBaseFromQuery = new URLSearchParams(window.location.search).get("apiBase");
+if (apiBaseFromQuery) localStorage.setItem("HOMEMATCH_API_BASE", apiBaseFromQuery);
+const apiBaseOverride = localStorage.getItem("HOMEMATCH_API_BASE");
+
+const API_BASE = apiBaseOverride || ((isLocalFrontendHost || isPrivateNetworkHost)
   ? "http://localhost:3001"
-  : "https://sg-condo-eval-server.onrender.com";
+  : "https://sg-condo-eval-server.onrender.com");
 
 async function evaluateViaAPI(devName, bed, bath) {
   const res = await fetch(`${API_BASE}/api/evaluate`, {
